@@ -1,16 +1,142 @@
 import type { GameState, KeysPressed } from './types';
 import { initStars, updateStars } from './background';
-import { createPlayer, updatePlayer } from './player-ship';
+import { createPlayerShip, updatePlayerShip } from './player-ship';
 import { spawnAsteroid, updateAsteroids } from './asteroid';
 import { fireBullets, updateBullets } from './weapons';
-import { spawnPowerUp, updatePowerUps, collectPowerUp } from './powerup';
+import { spawnPowerup, updatePowerups } from './powerup';
 import { updateExplosions, createExplosion } from './effects';
 import { checkPhysicsCollision } from './physics';
 import { render } from './renderer';
+import { preloadAssets } from './assets';
 
 interface SpawnTimers {
   asteroidTimer: number;
   powerupTimer: number;
+}
+
+// GameEngine class for managing the game
+export class GameEngine {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private state: GameState;
+  private keysPressed: KeysPressed;
+  private spawnTimers: SpawnTimers;
+  private lastTime: number;
+  private animationFrameId: number | null;
+  private assetsLoaded: boolean;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not get 2D context from canvas');
+    }
+    this.ctx = ctx;
+
+    this.state = initGameState(canvas.width, canvas.height, 'normal');
+    this.keysPressed = {
+      w: false,
+      a: false,
+      s: false,
+      d: false,
+      ArrowUp: false,
+      ArrowLeft: false,
+      ArrowDown: false,
+      ArrowRight: false,
+      Escape: false,
+      ' ': false,
+    };
+    this.spawnTimers = {
+      asteroidTimer: 0,
+      powerupTimer: 0,
+    };
+    this.lastTime = 0;
+    this.animationFrameId = null;
+    this.assetsLoaded = false;
+
+    this.setupKeyboardHandlers();
+  }
+
+  private setupKeyboardHandlers(): void {
+    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp);
+  }
+
+  private handleKeyDown = (e: KeyboardEvent): void => {
+    if (e.key in this.keysPressed) {
+      this.keysPressed[e.key as keyof KeysPressed] = true;
+
+      // Handle pause toggle
+      if (e.key === 'Escape') {
+        this.state = togglePause(this.state);
+      }
+
+      // Handle restart
+      if (e.key === 'r' && (this.state.gameOver || this.state.missionComplete)) {
+        this.restart();
+      }
+
+      e.preventDefault();
+    }
+  };
+
+  private handleKeyUp = (e: KeyboardEvent): void => {
+    if (e.key in this.keysPressed) {
+      this.keysPressed[e.key as keyof KeysPressed] = false;
+      e.preventDefault();
+    }
+  };
+
+  async start(): Promise<void> {
+    // Preload assets first
+    if (!this.assetsLoaded) {
+      await preloadAssets();
+      this.assetsLoaded = true;
+    }
+
+    this.lastTime = performance.now();
+    this.gameLoop(this.lastTime);
+  }
+
+  stop(): void {
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+  }
+
+  restart(): void {
+    this.state = initGameState(this.canvas.width, this.canvas.height, this.state.difficulty);
+    this.spawnTimers = {
+      asteroidTimer: 0,
+      powerupTimer: 0,
+    };
+  }
+
+  private gameLoop = (currentTime: number): void => {
+    const deltaTime = (currentTime - this.lastTime) / 1000;
+    this.lastTime = currentTime;
+
+    // Update game state
+    const { newState, newTimers } = updateGameState(
+      this.state,
+      deltaTime,
+      this.keysPressed,
+      this.canvas.width,
+      this.canvas.height,
+      this.spawnTimers
+    );
+    this.state = newState;
+    this.spawnTimers = newTimers;
+
+    // Render
+    render(this.ctx, this.state, this.canvas);
+
+    // Continue loop
+    this.animationFrameId = requestAnimationFrame(this.gameLoop);
+  };
 }
 
 // Initialize the game state
@@ -20,7 +146,7 @@ export function initGameState(
   difficulty: 'easy' | 'normal' | 'hard' = 'normal'
 ): GameState {
   return {
-    player: createPlayer(canvasWidth, canvasHeight),
+    player: createPlayerShip(canvasWidth, canvasHeight),
     stars: initStars(canvasWidth, canvasHeight, 100),
     asteroids: [],
     bullets: [],
@@ -68,38 +194,38 @@ export function updateGameState(
   // Spawn asteroids
   let newAsteroids = [...state.asteroids];
   if (newAsteroidTimer >= intervals.asteroid) {
-    newAsteroids.push(spawnAsteroid(canvasWidth, canvasHeight, state.difficulty));
+    newAsteroids.push(spawnAsteroid(canvasWidth, state.difficulty));
     newAsteroidTimer = 0;
   }
 
   // Spawn powerups
   let newPowerups = [...state.powerups];
   if (newPowerupTimer >= intervals.powerup) {
-    newPowerups.push(spawnPowerUp(canvasWidth));
+    newPowerups.push(spawnPowerup(canvasWidth));
     newPowerupTimer = 0;
   }
 
   // Fire bullets (if spacebar is pressed)
   let newBullets = [...state.bullets];
   if (keysPressed[' ']) {
-    const firedBullets = fireBullets(state.player);
+    const firedBullets = fireBullets(state.player.position.x, state.player.position.y, state.player.weaponLevel);
     newBullets.push(...firedBullets);
   }
 
-  // Update entities
-  const updatedPlayer = updatePlayer(state.player, keysPressed, deltaTime, canvasWidth, canvasHeight);
+  // Update entities (these functions mutate in place)
+  updatePlayerShip(state.player, keysPressed, canvasWidth, canvasHeight, deltaTime);
   const updatedStars = updateStars(state.stars, deltaTime, canvasWidth, canvasHeight);
-  const updatedAsteroids = updateAsteroids(newAsteroids, deltaTime, canvasHeight);
-  const updatedBullets = updateBullets(newBullets, deltaTime, canvasHeight);
-  const updatedPowerups = updatePowerUps(newPowerups, deltaTime, canvasHeight);
+  updateAsteroids(newAsteroids, canvasHeight, deltaTime);
+  updateBullets(newBullets, deltaTime);
+  updatePowerups(newPowerups, canvasHeight, deltaTime);
   const updatedExplosions = updateExplosions(state.explosions, deltaTime);
 
-  // Collision detection
-  let finalPlayer = { ...updatedPlayer };
-  let finalAsteroids = [...updatedAsteroids];
-  let finalBullets = [...updatedBullets];
-  let finalPowerups = [...updatedPowerups];
-  let finalExplosions = [...updatedExplosions];
+  // Collision detection (use the updated arrays directly)
+  let finalPlayer = state.player;
+  let finalAsteroids = newAsteroids;
+  let finalBullets = newBullets;
+  let finalPowerups = newPowerups;
+  let finalExplosions = updatedExplosions;
   let newScore = state.score;
 
   // Bullet-Asteroid collisions
@@ -173,7 +299,15 @@ export function updateGameState(
   const powerupsToRemove = new Set<string>();
   for (const powerup of finalPowerups) {
     if (checkPhysicsCollision(finalPlayer, powerup)) {
-      finalPlayer = collectPowerUp(finalPlayer, powerup);
+      // Apply powerup effect directly
+      if (powerup.type === 'dual-gun') {
+        finalPlayer.weaponLevel = Math.min(4, finalPlayer.weaponLevel + 1);
+      } else if (powerup.type === 'shield') {
+        finalPlayer.shieldLevel = Math.min(2, finalPlayer.shieldLevel + 1);
+      } else if (powerup.type === 'speed') {
+        finalPlayer.speedLevel = Math.min(3, finalPlayer.speedLevel + 1);
+        finalPlayer.speed = finalPlayer.baseSpeed * (1 + finalPlayer.speedLevel * 0.2);
+      }
       powerupsToRemove.add(powerup.id);
     }
   }
@@ -206,66 +340,10 @@ export function updateGameState(
   };
 }
 
-// Game loop
-export function startGameLoop(
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D,
-  initialState: GameState,
-  keysPressed: KeysPressed
-): () => void {
-  let state = initialState;
-  let lastTime = performance.now();
-  let animationFrameId: number | null = null;
-
-  const spawnTimers: SpawnTimers = {
-    asteroidTimer: 0,
-    powerupTimer: 0,
-  };
-
-  function gameLoop(currentTime: number) {
-    const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
-    lastTime = currentTime;
-
-    // Update game state
-    const { newState, newTimers } = updateGameState(
-      state,
-      deltaTime,
-      keysPressed,
-      canvas.width,
-      canvas.height,
-      spawnTimers
-    );
-    state = newState;
-    spawnTimers.asteroidTimer = newTimers.asteroidTimer;
-    spawnTimers.powerupTimer = newTimers.powerupTimer;
-
-    // Render
-    render(ctx, state, canvas);
-
-    // Continue loop
-    animationFrameId = requestAnimationFrame(gameLoop);
-  }
-
-  // Start the loop
-  animationFrameId = requestAnimationFrame(gameLoop);
-
-  // Return cleanup function
-  return () => {
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-    }
-  };
-}
-
 // Toggle pause
 export function togglePause(state: GameState): GameState {
   return {
     ...state,
     paused: !state.paused,
   };
-}
-
-// Restart game
-export function restartGame(canvasWidth: number, canvasHeight: number, difficulty: 'easy' | 'normal' | 'hard'): GameState {
-  return initGameState(canvasWidth, canvasHeight, difficulty);
 }

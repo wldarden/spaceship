@@ -1,9 +1,9 @@
 import type { GameState } from './types';
 import { renderStars } from './background';
 import { renderAsteroids } from './asteroid';
-import { renderPlayer } from './player-ship';
+import { renderPlayerShip } from './player-ship';
 import { renderBullets } from './weapons';
-import { renderPowerUps } from './powerup';
+import { renderPowerups } from './powerup';
 import { renderExplosions } from './effects';
 
 // Main render function
@@ -16,8 +16,8 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, canvas: 
   renderStars(ctx, state.stars);
   renderAsteroids(ctx, state.asteroids);
   renderBullets(ctx, state.bullets);
-  renderPowerUps(ctx, state.powerups);
-  renderPlayer(ctx, state.player);
+  renderPowerups(ctx, state.powerups);
+  renderPlayerShip(ctx, state.player);
   renderExplosions(ctx, state.explosions);
 
   // Render HUD

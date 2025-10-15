@@ -1,5 +1,5 @@
 import type { Bullet, Asteroid } from './types';
-import { assetLoader } from './assets';
+import { getImage } from './assets';
 import { createRectHitbox, checkPhysicsCollision } from './physics';
 
 let bulletIdCounter = 0;
@@ -9,7 +9,7 @@ const BULLET_CONFIG = {
   height: 64,
   speed: 12, // pixels per frame
   damage: 25,
-  sprite: 'weapons/MG.png',
+  sprite: '/assets/weapons/MG.png',
 };
 
 export function createBullet(x: number, y: number, velocityX: number = 0, velocityY: number = -BULLET_CONFIG.speed): Bullet {
@@ -23,7 +23,7 @@ export function createBullet(x: number, y: number, velocityX: number = 0, veloci
     width: BULLET_CONFIG.width,
     height: BULLET_CONFIG.height,
     damage: BULLET_CONFIG.damage,
-    collisionBodies: createRectHitbox(BULLET_CONFIG.width, BULLET_CONFIG.height, 0.4),
+    collisionBodies: createRectHitbox(BULLET_CONFIG.width, BULLET_CONFIG.height),
   };
 }
 
@@ -83,7 +83,7 @@ export function updateBullets(bullets: Bullet[], deltaTime: number): void {
 }
 
 export function renderBullets(ctx: CanvasRenderingContext2D, bullets: Bullet[]): void {
-  const image = assetLoader.getImage(BULLET_CONFIG.sprite);
+  const image = getImage(BULLET_CONFIG.sprite);
 
   for (const bullet of bullets) {
     if (image) {

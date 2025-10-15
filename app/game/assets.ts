@@ -12,14 +12,14 @@ const assetCache: AssetCache = {
 
 // List of all image assets to preload
 const imageAssets = [
-  '/game-assets/spaceship.png',
-  '/game-assets/asteroid_medium.png',
-  '/game-assets/asteroid_large.png',
-  '/game-assets/bullet.png',
-  '/game-assets/exp01_260x260x7.png', // Explosion sprite sheet
-  '/game-assets/powerup_dualgun.png',
-  '/game-assets/powerup_shield.png',
-  '/game-assets/powerup_speed.png',
+  '/assets/ships/spaceship.png',
+  '/assets/enemies/asteroid_medium.png',
+  '/assets/enemies/asteroid_large.png',
+  '/assets/weapons/MG.png',
+  '/assets/explosions/exp01_260x260x7.png', // Explosion sprite sheet
+  '/assets/powerups/powerup_dualgun.png',
+  '/assets/powerups/powerup_shield.png',
+  '/assets/powerups/powerup_speed.png',
 ];
 
 // Preload all game assets

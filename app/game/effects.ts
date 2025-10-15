@@ -18,7 +18,7 @@ export function createExplosion(
     frameDuration: 50, // 50ms per frame
     elapsedTime: 0,
     scale,
-    spriteSheet: '/game-assets/exp01_260x260x7.png',
+    spriteSheet: '/assets/explosions/exp01_260x260x7.png',
     finished: false,
   };
 }

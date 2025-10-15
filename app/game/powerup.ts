@@ -12,7 +12,7 @@ const POWERUP_CONFIG = {
 export function createPowerup(
   x: number,
   y: number,
-  type: 'dual-gun' | 'health' | 'shield'
+  type: 'dual-gun' | 'shield' | 'speed'
 ): PowerUp {
   return {
     id: `powerup-${powerupIdCounter++}`,
@@ -23,7 +23,7 @@ export function createPowerup(
     width: POWERUP_CONFIG.width,
     height: POWERUP_CONFIG.height,
     type,
-    collisionBodies: createRectHitbox(POWERUP_CONFIG.width, POWERUP_CONFIG.height, 0.8),
+    collisionBodies: createRectHitbox(POWERUP_CONFIG.width, POWERUP_CONFIG.height),
   };
 }
 

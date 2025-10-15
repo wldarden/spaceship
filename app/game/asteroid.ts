@@ -1,6 +1,6 @@
 import type { Asteroid } from './types';
 import type { HitboxDef } from './physics';
-import { assetLoader, drawImageRotated } from './assets';
+import { getImage } from './assets';
 import { createCrossHitbox, checkPhysicsCollision } from './physics';
 
 // Asteroid configuration by size
@@ -99,18 +99,21 @@ export function renderAsteroids(
 ): void {
   for (const asteroid of asteroids) {
     const config = ASTEROID_CONFIG[asteroid.size];
-    const image = assetLoader.getImage(config.asset);
+    const image = getImage(config.asset);
 
     if (image) {
-      drawImageRotated(
-        ctx,
+      // Draw rotated image manually
+      ctx.save();
+      ctx.translate(asteroid.x, asteroid.y);
+      ctx.rotate(asteroid.rotation);
+      ctx.drawImage(
         image,
-        asteroid.x,
-        asteroid.y,
-        asteroid.rotation,
+        -asteroid.width / 2,
+        -asteroid.height / 2,
         asteroid.width,
         asteroid.height
       );
+      ctx.restore();
     } else {
       // Fallback rendering if image not loaded
       ctx.save();
