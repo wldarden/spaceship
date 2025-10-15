@@ -26,6 +26,9 @@ type Pages = {
   "/game": {
     params: {};
   };
+  "/test": {
+    params: {};
+  };
   "/api/save-progress": {
     params: {};
   };
@@ -34,7 +37,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/profile/:playerId" | "/upgrades/:playerId" | "/game" | "/api/save-progress";
+    page: "/" | "/profile/:playerId" | "/upgrades/:playerId" | "/game" | "/test" | "/api/save-progress";
   };
   "routes/player-select.tsx": {
     id: "routes/player-select";
@@ -51,6 +54,10 @@ type RouteFiles = {
   "routes/game.tsx": {
     id: "routes/game";
     page: "/game";
+  };
+  "routes/test-level.tsx": {
+    id: "routes/test-level";
+    page: "/test";
   };
   "routes/api.save-progress.tsx": {
     id: "routes/api.save-progress";

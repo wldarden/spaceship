@@ -1,10 +1,32 @@
 import type { PlayerShip, KeysPressed } from '../core/types';
-import { createCrossHitbox } from '../core/physics';
+import { createCrossHitbox, type HitboxDef } from '../core/physics';
+
+const ORANGE_WIDTH = 70;
+const ORANGE_HEIGHT = 92;
+
+export const PLAYER_SHIP_CONFIG = { // ratio of orange white ship is 898x1192
+  width: ORANGE_WIDTH,
+  height: ORANGE_HEIGHT, // Maintain aspect ratio of sprite (roughly 3:4)
+  baseSpeed: 5,
+  asset: '/assets/ships/Orange_White_Fighter.png',
+  collisionBodies: [
+    {
+      type: 'rect' as const,
+      offset: { x: 0, y: 15 }, // Center of the wide rectangle
+      width: ORANGE_WIDTH,
+      height: ORANGE_HEIGHT * 0.2,
+    },
+    {
+      type: 'rect' as const,
+      offset: { x: 0, y: 0 }, // Center of the tall rectangle
+      width: ORANGE_WIDTH * 0.25,
+      height: ORANGE_HEIGHT * 0.90,
+    }
+  ] as HitboxDef[]
+};
 
 export function createPlayerShip(canvasWidth: number, canvasHeight: number): PlayerShip {
-  const width = 40;
-  const height = 50;
-  const baseSpeed = 5;
+  const { width, height, baseSpeed, collisionBodies } = PLAYER_SHIP_CONFIG;
 
   return {
     position: { x: canvasWidth / 2, y: canvasHeight - 100 },
@@ -18,7 +40,7 @@ export function createPlayerShip(canvasWidth: number, canvasHeight: number): Pla
     weaponLevel: 1,
     shieldLevel: 0,
     speedLevel: 0,
-    collisionBodies: createCrossHitbox(width, height),
+    collisionBodies: collisionBodies || createCrossHitbox(width, height),
   };
 }
 

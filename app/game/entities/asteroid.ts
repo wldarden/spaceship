@@ -1,6 +1,6 @@
 import type { Asteroid } from '../core/types';
 import type { HitboxDef } from '../core/physics';
-import { createCrossHitbox, checkPhysicsCollision } from '../core/physics';
+import {createCrossHitbox, checkPhysicsCollision, createCircleHitbox} from '../core/physics'
 
 // Asteroid configuration by size
 const ASTEROID_CONFIG = {
@@ -51,7 +51,7 @@ export function createAsteroid(
     size,
     damage: Math.floor(config.damage * difficultyMultiplier),
     health: config.health,
-    collisionBodies: createCrossHitbox(config.width, config.height),
+    collisionBodies: createCircleHitbox(config.width / 2),
   };
 }
 

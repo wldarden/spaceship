@@ -1,42 +1,56 @@
 import type { PlayerShip } from '../core/types';
+import { getImage } from '../core/assets';
+import { PLAYER_SHIP_CONFIG } from '../entities/player';
 
 export function renderPlayerShip(ctx: CanvasRenderingContext2D, player: PlayerShip): void {
   const { x, y } = player.position;
   const w = player.width;
   const h = player.height;
 
-  // Draw a simple steampunk-style ship (triangle with details)
+  const image = getImage(PLAYER_SHIP_CONFIG.asset);
+
   ctx.save();
   ctx.translate(x, y);
 
-  // Main body (bronze/copper color)
-  ctx.fillStyle = '#CD7F32';
-  ctx.beginPath();
-  ctx.moveTo(0, -h / 2); // Top point
-  ctx.lineTo(-w / 2, h / 2); // Bottom left
-  ctx.lineTo(w / 2, h / 2); // Bottom right
-  ctx.closePath();
-  ctx.fill();
+  if (image) {
+    // Draw the player ship sprite (center-based)
+    ctx.drawImage(
+      image,
+      -w / 2,
+      -h / 2,
+      w,
+      h
+    );
+  } else {
+    // Fallback rendering if image not loaded
+    ctx.fillStyle = '#CD7F32';
+    ctx.beginPath();
+    ctx.moveTo(0, -h / 2); // Top point
+    ctx.lineTo(-w / 2, h / 2); // Bottom left
+    ctx.lineTo(w / 2, h / 2); // Bottom right
+    ctx.closePath();
+    ctx.fill();
 
-  // Outline
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+    // Outline
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-  // Engine glow (blue/purple)
-  ctx.fillStyle = '#4169E1';
-  ctx.beginPath();
-  ctx.arc(-w / 4, h / 2 - 5, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(w / 4, h / 2 - 5, 4, 0, Math.PI * 2);
-  ctx.fill();
+    // Engine glow (blue/purple)
+    ctx.fillStyle = '#4169E1';
+    ctx.beginPath();
+    ctx.arc(-w / 4, h / 2 - 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(w / 4, h / 2 - 5, 4, 0, Math.PI * 2);
+    ctx.fill();
 
-  // Cockpit window
-  ctx.fillStyle = '#87CEEB';
-  ctx.beginPath();
-  ctx.arc(0, -h / 4, 6, 0, Math.PI * 2);
-  ctx.fill();
+    // Cockpit window
+    ctx.fillStyle = '#87CEEB';
+    ctx.beginPath();
+    ctx.arc(0, -h / 4, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.restore();
 

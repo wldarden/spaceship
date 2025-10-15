@@ -4,8 +4,8 @@ import { createRectHitbox, checkPhysicsCollision } from '../core/physics';
 let bulletIdCounter = 0;
 
 const BULLET_CONFIG = {
-  width: 40,
-  height: 64,
+  width: 8,
+  height: 34,
   speed: 12, // pixels per frame
   damage: 25,
   sprite: '/assets/weapons/MG.png',

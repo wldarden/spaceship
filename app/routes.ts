@@ -5,5 +5,6 @@ export default [
   route("profile/:playerId", "routes/profile.$playerId.tsx"),
   route("upgrades/:playerId", "routes/upgrades.$playerId.tsx"),
   route("game", "routes/game.tsx"),
+  route("test", "routes/test-level.tsx"),
   route("api/save-progress", "routes/api.save-progress.tsx"),
 ] satisfies RouteConfig;

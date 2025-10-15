@@ -1,6 +1,7 @@
 // Asset loader for preloading game assets
 
-import {ASTEROID_ASSETS} from '~/game/entities/asteroid'
+import { ASTEROID_ASSETS } from '~/game/entities/asteroid';
+import { PLAYER_SHIP_CONFIG } from '~/game/entities/player';
 
 interface AssetCache {
   images: Map<string, HTMLImageElement>;
@@ -14,7 +15,7 @@ const assetCache: AssetCache = {
 
 // List of all image assets to preload
 const imageAssets = [
-  '/assets/ships/spaceship.png',
+  PLAYER_SHIP_CONFIG.asset,
   ...ASTEROID_ASSETS,
   '/assets/weapons/MG.png',
   '/assets/explosions/exp01_260x260x7.png', // Explosion sprite sheet
