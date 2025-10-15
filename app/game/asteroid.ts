@@ -11,7 +11,7 @@ const ASTEROID_CONFIG = {
     damage: 15,
     health: 50,
     speed: { min: 1, max: 2.5 },
-    asset: 'enemies/Asteroid_Medium_60x60_01.png',
+    asset: '/assets/enemies/Asteroid_Medium_60x60_01.png',
   },
   large: {
     width: 128,
@@ -19,7 +19,7 @@ const ASTEROID_CONFIG = {
     damage: 35,
     health: 100,
     speed: { min: 0.5, max: 1.5 },
-    asset: 'enemies/Asteroid_Large_128x128_01.png',
+    asset: '/assets/enemies/Asteroid_Large_128x128_01.png',
   },
 } as const;
 

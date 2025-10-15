@@ -212,8 +212,14 @@ export function updateGameState(
     newBullets.push(...firedBullets);
   }
 
-  // Update entities (these functions mutate in place)
-  updatePlayerShip(state.player, keysPressed, canvasWidth, canvasHeight, deltaTime);
+  // Update entities (these functions mutate in place, so we need to copy the player first)
+  let updatedPlayer = {
+    ...state.player,
+    position: { ...state.player.position },
+    velocity: { ...state.player.velocity },
+    collisionBodies: state.player.collisionBodies // Collision bodies don't change, can share reference
+  };
+  updatePlayerShip(updatedPlayer, keysPressed, canvasWidth, canvasHeight, deltaTime);
   const updatedStars = updateStars(state.stars, deltaTime, canvasWidth, canvasHeight);
   updateAsteroids(newAsteroids, canvasHeight, deltaTime);
   updateBullets(newBullets, deltaTime);
@@ -221,7 +227,7 @@ export function updateGameState(
   const updatedExplosions = updateExplosions(state.explosions, deltaTime);
 
   // Collision detection (use the updated arrays directly)
-  let finalPlayer = state.player;
+  let finalPlayer = updatedPlayer;
   let finalAsteroids = newAsteroids;
   let finalBullets = newBullets;
   let finalPowerups = newPowerups;

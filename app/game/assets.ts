@@ -13,8 +13,8 @@ const assetCache: AssetCache = {
 // List of all image assets to preload
 const imageAssets = [
   '/assets/ships/spaceship.png',
-  '/assets/enemies/asteroid_medium.png',
-  '/assets/enemies/asteroid_large.png',
+  '/assets/enemies/Asteroid_Medium_60x60_01.png',
+  '/assets/enemies/Asteroid_Large_128x128_01.png',
   '/assets/weapons/MG.png',
   '/assets/explosions/exp01_260x260x7.png', // Explosion sprite sheet
   '/assets/powerups/powerup_dualgun.png',
@@ -25,21 +25,24 @@ const imageAssets = [
 // Preload all game assets
 export async function preloadAssets(): Promise<void> {
   const imagePromises = imageAssets.map((src) => {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       const img = new Image();
       img.onload = () => {
         assetCache.images.set(src, img);
+        console.log(`✓ Loaded image: ${src}`);
         resolve();
       };
       img.onerror = () => {
-        console.error(`Failed to load image: ${src}`);
-        reject(new Error(`Failed to load image: ${src}`));
+        console.warn(`⚠ Failed to load image (will use fallback): ${src}`);
+        // Don't reject, just resolve - fallback rendering will be used
+        resolve();
       };
       img.src = src;
     });
   });
 
   await Promise.all(imagePromises);
+  console.log(`Asset loading complete. ${assetCache.images.size}/${imageAssets.length} images loaded.`);
 }
 
 // Get a preloaded image from the cache
