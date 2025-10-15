@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLoaderData, useNavigate, redirect } from "react-router";
 import type { Route } from "./+types/game";
 import { db } from "~/db.server";
-import { GameEngine } from "~/game/engine";
+import { GameEngine } from "~/game/core/engine";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -39,8 +39,8 @@ export default function Game({ loaderData }: Route.ComponentProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Initialize game engine
-    const engine = new GameEngine(canvas);
+    // Initialize game engine with player's difficulty
+    const engine = new GameEngine(canvas, player.difficulty as 'recruit' | 'soldier' | 'veteran' | 'hero');
     engineRef.current = engine;
     engine.start();
 

@@ -1,4 +1,5 @@
 import { Form, Link, useLoaderData, redirect, useNavigation } from "react-router";
+import {useEffect, useState} from 'react'
 import type { Route } from "./+types/player-select";
 import { db } from "~/db.server";
 
@@ -46,6 +47,25 @@ export async function action({ request }: Route.ActionArgs) {
     return redirect(`/profile/${playerId}`);
   }
 
+  if (intent === "delete") {
+    const playerId = formData.get("playerId") as string;
+
+    try {
+      // Delete all related missions first, then the player
+      await db.mission.deleteMany({
+        where: { playerId }
+      });
+
+      await db.player.delete({
+        where: { id: playerId }
+      });
+
+      return redirect("/");
+    } catch (error) {
+      return { error: "Failed to delete player" };
+    }
+  }
+
   return { error: "Invalid action" };
 }
 
@@ -53,7 +73,8 @@ export default function PlayerSelect({ loaderData, actionData }: Route.Component
   const { players } = loaderData;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
-
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  console.log('navigation', navigation)
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 text-white">
       {/* Steampunk-style header */}
@@ -109,6 +130,13 @@ export default function PlayerSelect({ loaderData, actionData }: Route.Component
                         >
                           ▶️ Fly
                         </Link>
+                        <button
+                          onClick={() => setDeleteConfirm({ id: player.id, name: player.name })}
+                          className="px-4 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded transition-all"
+                          title="Delete pilot"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -153,6 +181,39 @@ export default function PlayerSelect({ loaderData, actionData }: Route.Component
           <p>Use WASD or Arrow Keys to fly • ESC to pause</p>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-gray-800 border-4 border-red-600 rounded-lg p-8 max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-2xl font-bold text-red-400 mb-4">⚠️ Confirm Delete</h2>
+            <p className="text-gray-300 mb-2">
+              Are you sure you want to delete pilot <span className="text-amber-400 font-bold">{deleteConfirm.name}</span>?
+            </p>
+            <p className="text-sm text-gray-400 mb-6">
+              This will permanently delete all missions and progress. This action cannot be undone!
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-bold rounded transition-all"
+              >
+                Cancel
+              </button>
+              <Form method="post" className="flex-1">
+                <input type="hidden" name="intent" value="delete" />
+                <input type="hidden" name="playerId" value={deleteConfirm.id} />
+                <button
+                  type="submit"
+                  className="w-full px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded transition-all"
+                >
+                  Delete
+                </button>
+              </Form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

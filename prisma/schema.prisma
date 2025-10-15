@@ -23,6 +23,7 @@ model Player {
   shipsDestroyed Int       @default(0)
   powerupsCollected Int    @default(0)
   totalFlightTime Int      @default(0) // in seconds
+  difficulty     String    @default("soldier") // recruit, soldier, veteran, hero
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

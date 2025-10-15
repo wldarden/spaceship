@@ -1,4 +1,4 @@
-import { Link, useLoaderData, redirect } from "react-router";
+import { Form, Link, useLoaderData, redirect } from "react-router";
 import type { Route } from "./+types/profile.$playerId";
 import { db } from "~/db.server";
 
@@ -35,6 +35,23 @@ export async function loader({ params }: Route.LoaderArgs) {
     totalStars,
     maxStars,
   };
+}
+
+export async function action({ request, params }: Route.ActionArgs) {
+  const { playerId } = params;
+  const formData = await request.formData();
+  const difficulty = formData.get("difficulty") as string;
+
+  if (!["recruit", "soldier", "veteran", "hero"].includes(difficulty)) {
+    return { error: "Invalid difficulty level" };
+  }
+
+  await db.player.update({
+    where: { id: playerId },
+    data: { difficulty },
+  });
+
+  return { success: true };
 }
 
 export default function PlayerProfile({ loaderData }: Route.ComponentProps) {
@@ -107,6 +124,44 @@ export default function PlayerProfile({ loaderData }: Route.ComponentProps) {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Difficulty Selector */}
+            <div className="bg-gray-800/80 border-2 border-amber-600 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-amber-400 mb-4">⚔️ Difficulty</h2>
+              <p className="text-gray-300 text-sm mb-4">
+                Choose your combat challenge level. Higher difficulties increase all damage taken.
+              </p>
+              <Form method="post" className="space-y-3">
+                {[
+                  { value: "recruit", label: "Recruit", color: "green", multiplier: "0.5x damage" },
+                  { value: "soldier", label: "Soldier", color: "blue", multiplier: "1x damage" },
+                  { value: "veteran", label: "Veteran", color: "orange", multiplier: "1.5x damage" },
+                  { value: "hero", label: "Hero", color: "red", multiplier: "2x damage" },
+                ].map((diff) => (
+                  <button
+                    key={diff.value}
+                    type="submit"
+                    name="difficulty"
+                    value={diff.value}
+                    className={`w-full p-3 rounded border-2 transition-all text-left ${
+                      player.difficulty === diff.value
+                        ? `border-${diff.color}-500 bg-${diff.color}-900/30`
+                        : "border-gray-600 hover:border-gray-500 bg-gray-700/30"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-white">{diff.label}</div>
+                        <div className="text-xs text-gray-400">{diff.multiplier}</div>
+                      </div>
+                      {player.difficulty === diff.value && (
+                        <span className="text-green-400">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </Form>
             </div>
 
             {/* Achievements Card */}
